@@ -69,7 +69,7 @@ module.exports = Clan = cls.Class.extend({
 	},
 	
 	save: function(callback) {
-		console.log('Unlocked '+this.wid);
+		//console.log('Unlocked '+this.wid);
 		this.db_model.save(function(err){callback(err);});
 	},
 	

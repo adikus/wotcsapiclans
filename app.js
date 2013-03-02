@@ -33,7 +33,7 @@ module.exports = app = cls.Class.extend({
 					self.idList.push(wid);
 					docs[i].locked = 1;
 					docs[i].save(function(){
-						console.log('Locked '+wid);
+						//console.log('Locked '+wid);
 						if(self.clans_ready_callback){
 							self.clans_ready_callback();
 							delete self.clans_ready_callback;
@@ -56,7 +56,7 @@ module.exports = app = cls.Class.extend({
 			self = this;
 			
 		thread.onDone(function(){
-			console.log(self.idList);
+			//console.log(self.idList);
 			self.loadClansFromDB();
 			return self.shiftClan();
 		});
