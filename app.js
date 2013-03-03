@@ -20,7 +20,7 @@ module.exports = app = cls.Class.extend({
 	loadClansFromDB: function() {
 		var self = this;
 	
-		ClanDB.find({locked: {$not: {$gte:1} } }).limit(10-this.idList.length).sort('updated_at').select('wid locked updated_at').exec(function(err, docs){
+		ClanDB.find({locked: {$not: {$gte:1} } }).limit(10).sort('updated_at').select('wid locked updated_at').exec(function(err, docs){
 			if(docs.length == 0 && self.clans_ready_callback){
 				self.clans_ready_callback();
 				delete self.clans_ready_callback;
@@ -29,7 +29,7 @@ module.exports = app = cls.Class.extend({
 				var wid = docs[i].wid,
 					now = new Date();
 				
-				if(docs[i].updated_at.getTime() + 20000 < now.getTime()){
+				if(docs[i].updated_at.getTime() + 20000 < now.getTime() && self.idList.length < 10){
 					self.idList.push(wid);
 					docs[i].locked = 1;
 					docs[i].save(function(){
