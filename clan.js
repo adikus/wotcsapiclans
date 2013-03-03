@@ -11,7 +11,7 @@ var clanSchema = mongoose.Schema({
 	region: 'number',
 	status: 'string',
 	locked: 'number',
-	members: ['string'],
+	members: 'mixed',
 	updated_at: 'date'
 });
 ClanDB = mongoose.model('Clan', clanSchema);
@@ -62,7 +62,32 @@ module.exports = Clan = cls.Class.extend({
 				pid = clanData.data.members[i].account_id;
 				this.memberIds.push(pid);
 			}
-			this.db_model.members = this.memberIds;
+			this.memberIds = _.map(this.memberIds,function(wid){
+				return wid.toString();
+			});
+			if(this.db_model.members[0].length > 0){
+				var change = [],
+					self = this;
+				_.each(this.db_model.members[0],function(wid){
+					if(!_.contains(self.memberIds,wid))change.push("-"+wid);
+				});
+				_.each(this.memberIds,function(wid){
+					if(!_.contains(self.db_model.members[0],wid))change.push("+"+wid);
+				});
+				if(change.length > 0){
+					var membersChange = {
+						updated_at: Date.now(),
+						changes: change
+					};
+					this.db_model.members.push(membersChange);
+					this.db_model.members[0] = this.memberIds;
+					this.db_model.markModified('members');
+				}
+			}else{
+				this.db_model.members = [];
+				this.db_model.members[0] = this.memberIds;
+				this.db_model.markModified('members');
+			}
 		}
 		this.db_model.locked = 0;
 		this.db_model.updated_at = new Date();

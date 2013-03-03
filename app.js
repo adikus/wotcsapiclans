@@ -77,7 +77,24 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	globalStatus: function(options) {		
-		return options;
+		var self = this,
+			wait_callback = null,
+			time = new Date();
+			
+		time.setTime(time.getTime()-20000);
+			
+		ClanDB.count({updated_at:{$gt:time}},function(err, count){
+			var ret = {loading: self.idList};
+			ret.updated = count;
+			ClanDB.count({},function(err,count){
+				ret.total = count;
+				wait_callback(ret);
+			});			
+		});
+		
+		return function(callback) {
+			wait_callback = callback;
+		}
 	},
 	
 	status: function(options) {
