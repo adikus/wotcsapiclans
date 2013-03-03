@@ -4,7 +4,7 @@ var cls = require("./lib/class"),
     Thread = require("./thread");
 
 module.exports = app = cls.Class.extend({
-	init: function(miliseconds){
+	init: function(){
 		console.log('Initialising app');
 		
 		this.idList = [];
@@ -81,15 +81,19 @@ module.exports = app = cls.Class.extend({
 			wait_callback = null,
 			time = new Date();
 			
-		time.setTime(time.getTime()-20000);
+		time.setTime(time.getTime()-60000);
 			
 		ClanDB.count({updated_at:{$gt:time}},function(err, count){
 			var ret = {loading: self.idList};
-			ret.updated = count;
-			ClanDB.count({},function(err,count){
-				ret.total = count;
-				wait_callback(ret);
-			});			
+			ret["updated1m"] = count;
+			time.setTime(time.getTime()+60000-3600000);
+			ClanDB.count({updated_at:{$gt:time}},function(err, count){
+				ret["updated1h"] = count;
+				ClanDB.count({},function(err,count){
+					ret.total = count;
+					wait_callback(ret);
+				});			
+			});		
 		});
 		
 		return function(callback) {

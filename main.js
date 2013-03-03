@@ -2,7 +2,7 @@ mongoose = require('mongoose')
 
 function main(){
     var Server = require('./server'),
-        App = new require('./app');
+        App = require('./app');
         
     mongoose.connect(process.env.MONGOHQ_URL || 'mongodb://localhost/wotcsapi');
 	
@@ -10,6 +10,9 @@ function main(){
   	app = new App();
   	
   	app.onClansReady(function(){
+		app.addThread();
+		app.addThread();
+		app.addThread();
 		app.addThread();
 	});	
   	
