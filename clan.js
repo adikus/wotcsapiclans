@@ -65,7 +65,7 @@ module.exports = Clan = cls.Class.extend({
 			this.memberIds = _.map(this.memberIds,function(wid){
 				return wid.toString();
 			});
-			if(this.db_model.members[0].length > 0){
+			if(this.db_model.members && this.db_model.members[0].length > 0){
 				var change = [],
 					self = this;
 				_.each(this.db_model.members[0],function(wid){
