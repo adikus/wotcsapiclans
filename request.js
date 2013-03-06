@@ -49,9 +49,9 @@ module.exports = Request = cls.Class.extend({
 	},
 	
 	getHost: function(id) {
-		if(id > "2500000000")return "portal-wot.go.vn";
-		if(id > "1000000000")return "worldoftanks.com";
-		if(id > "500000000")return "worldoftanks.eu";
+		if(id > 2500000000)return "portal-wot.go.vn";
+		if(id > 1000000000)return "worldoftanks.com";
+		if(id > 500000000)return "worldoftanks.eu";
 		return "worldoftanks.ru";
 	}
 });
