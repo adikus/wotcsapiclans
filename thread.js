@@ -39,7 +39,7 @@ module.exports = Thread = cls.Class.extend({
 			
 			self.r++;
 			
-			req = new Request('worldoftanks.eu','clans',self.clan.wid,'1.1');
+			req = new Request('clans',self.clan.wid,'1.1');
 			
 			req.onSuccess(function(data){
 				self.clan.parseData(data);

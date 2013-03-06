@@ -3,8 +3,10 @@ var cls = require("./lib/class"),
     http = require("http");
 
 module.exports = Request = cls.Class.extend({
-	init: function(host,method,id,api){
+	init: function(method,id,api){
 		this.data = '';
+		
+		var host = this.getHost(id);
 		
 		var	self = this,
 			options = {
@@ -44,5 +46,12 @@ module.exports = Request = cls.Class.extend({
 	
 	onTimeout: function(callback){
 		this.timeout_callback = callback;
+	},
+	
+	getHost: function(id) {
+		if(id > "2500000000")return "portal-wot.go.vn";
+		if(id > "1000000000")return "worldoftanks.com";
+		if(id > "500000000")return "worldoftanks.eu";
+		return "worldoftanks.ru";
 	}
 });

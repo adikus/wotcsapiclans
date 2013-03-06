@@ -6,7 +6,7 @@ function main(){
         
     mongoose.connect(process.env.MONGOHQ_URL || 'mongodb://localhost/wotcsapi');
 	
-  	server = new Server(process.env.PORT || 3000);
+  	server = new Server(process.env.PORT || 3001);
   	app = new App();
   	
   	app.onClansReady(function(){
