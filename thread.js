@@ -42,7 +42,10 @@ module.exports = Thread = cls.Class.extend({
 			req = new Request('clans',self.clan.wid,'1.1');
 			
 			req.onSuccess(function(data){
-				self.clan.parseData(data);
+				if(!self.clan.parseData(data)){
+          self.clan = self.timeout_callback(self.clan.wid);
+					self.loadClan();  
+        }
 				console.log('Loaded: '+self.clan.wid);
 				self.clan.save(function(err){
 					if(err)console.log(err);

@@ -17,7 +17,8 @@ module.exports = Request = cls.Class.extend({
 				};
 		
 		this.request = http.request(options, function(res) {
-			var timeout = res.statusCode == 504;
+			var timeout = res.statusCode == 504,
+          self = this;
 			
 			res.on('data', function (chunk) {
 				if(!timeout)self.data += chunk.toString('utf8');

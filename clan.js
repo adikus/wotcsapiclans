@@ -40,7 +40,12 @@ module.exports = Clan = cls.Class.extend({
 	
 	parseData: function(data){
 		
-		clanData = JSON.parse(data);
+    try{
+        clanData = JSON.parse(data);
+    }catch(e){
+        console.log(e);
+        return false;
+    }
 		if(!clanData.status)console.log(data);
 		if(clanData.status == "error"){
 			this.db_model.status = clanData.error;
@@ -91,7 +96,8 @@ module.exports = Clan = cls.Class.extend({
 		}
 		this.db_model.locked = 0;
 		this.db_model.updated_at = new Date();
-	},
+    return true;
+  },
 	
 	save: function(callback) {
 		//console.log('Unlocked '+this.wid);
