@@ -37,17 +37,24 @@ module.exports = Thread = cls.Class.extend({
 		
 		this.clan.find(function(err){
 			
+			if(err && err.msg == "WIDchange"){
+				console.log("WID changed to number for clan "+self.clan.wid);
+				self.clan = self.timeout_callback(self.clan.wid);
+				self.loadClan();
+				return false;
+			}
+			
 			self.r++;
 			
-			req = new Request('clans',self.clan.wid,'1.1');
+			var req = new Request('clans',self.clan.wid,'1.1');
 			
 			req.onSuccess(function(data){
 				if(!self.clan.parseData(data)){
-          console.log(data);
-          self.clan = self.timeout_callback(self.clan.wid);
+          			//console.log(data);
+          			self.clan = self.timeout_callback(self.clan.wid);
 					self.loadClan();
-          return false;  
-        }
+          			return false;  
+        		}
 				console.log('Loaded: '+self.clan.wid);
 				self.clan.save(function(err){
 					if(err)console.log(err);

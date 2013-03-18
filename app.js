@@ -1,7 +1,9 @@
 var cls = require("./lib/class"),
     _ = require("underscore"),
     Clan = require("./clan"),
-    Thread = require("./thread");
+    Thread = require("./thread"),
+    DBTypes = require("./db_types"),
+    Config = require("./config");
 
 module.exports = app = cls.Class.extend({
 	init: function(){
@@ -9,7 +11,7 @@ module.exports = app = cls.Class.extend({
 		
 		this.idList = [];
 		this.threads = [];
-		ClanDB.update({},{$set:{locked:0}},{multi:true},function(){console.log("Unlocked all.");});
+		DBTypes.Clan.update({},{$set:{locked:0}},{multi:true},function(){console.log("Unlocked all.");});
 		this.loadClansFromDB();
 	},
 	
@@ -20,7 +22,7 @@ module.exports = app = cls.Class.extend({
 	loadClansFromDB: function() {
 		var self = this;
 	
-		ClanDB.find({locked: {$not: {$gte:1} } }).limit(10).sort('updated_at').select('wid locked updated_at').exec(function(err, docs){
+		DBTypes.Clan.find({locked: {$not: {$gte:1} } }).limit(10).sort('updated_at').select('wid locked updated_at').exec(function(err, docs){
 			if(docs.length == 0 && self.clans_ready_callback){
 				self.clans_ready_callback();
 				delete self.clans_ready_callback;
@@ -29,7 +31,7 @@ module.exports = app = cls.Class.extend({
 				var wid = docs[i].wid,
 					now = new Date();
 				
-				if(docs[i].updated_at.getTime() + 20000 < now.getTime() && self.idList.length < 10){
+				if(docs[i].updated_at.getTime() + Config.clanUpdateInterval < now.getTime() && self.idList.length < 10){
 					self.idList.push(wid);
 					docs[i].locked = 1;
 					docs[i].save(function(){
@@ -83,13 +85,13 @@ module.exports = app = cls.Class.extend({
 			
 		time.setTime(time.getTime()-60000);
 			
-		ClanDB.count({updated_at:{$gt:time}},function(err, count){
+		DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
 			var ret = {loading: self.idList};
 			ret["updated1m"] = count;
 			time.setTime(time.getTime()+60000-3600000);
-			ClanDB.count({updated_at:{$gt:time}},function(err, count){
+			DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
 				ret["updated1h"] = count;
-				ClanDB.count({},function(err,count){
+				DBTypes.Clan.count({},function(err,count){
 					ret.total = count;
 					wait_callback(ret);
 				});			
@@ -103,24 +105,151 @@ module.exports = app = cls.Class.extend({
 	
 	status: function(options) {
 		var self = this,
-			wid = options[0],
+			wid = parseInt(options[0]),
 			wait_callback = null;
 			
-		ClanDB.findOne({wid: wid},function(err,doc){
-			if(doc)wait_callback(doc);
-			else {
-				clan = new ClanDB();
-				clan.wid = wid;
-				clan.status = "Not loaded.";
-				clan.locked = 0;
-				clan.updated_at = 0;
-				clan.save();
-				wait_callback(clan);
+		DBTypes.Clan.findOne({wid: wid},function(err,doc){
+			if(doc){
+				clan = new Clan(wid);
+				clan.doc = doc;
 			}
+			else {
+				doc = new DBTypes.Clan();
+				doc.wid = wid;
+				doc.status = "Not loaded.";
+				doc.locked = 0;
+				doc.updated_at = 0;
+				doc.save();
+				var clan = new Clan(wid);
+				clan.doc = doc;
+			}
+			wait_callback(clan.getData());
 		});
 		
 		return function(callback) {
 			wait_callback = callback;
+		}
+	},
+	
+	changes: function(options) {
+		var self = this,
+			wid = parseInt(options[0]),
+			wait_callback = null;
+			
+		DBTypes.Clan.findOne({wid: wid}).select("wid").exec(function(err,doc){
+			if(doc){
+				clan = new Clan(wid);
+				clan.doc = doc;
+			}
+			clan.getChanges(wait_callback);
+		});
+		
+		return function(callback) {
+			wait_callback = callback;
+		}
+	},
+	
+	list: function(options) {
+		var self = this,
+			region = options[0]?parseInt(options[0]):-1,
+			skip = options[1]?parseInt(options[1])*30:0,
+			wait_callback = null;
+			
+		var cond = {};	
+		switch(region){
+			case 0:
+				cond = {wid:{$gt:0,$lt:500000000}};
+				break;
+			case 1:
+				cond = {wid:{$gt:500000000,$lt:1000000000}};
+				break;
+			case 2:
+				cond = {wid:{$gt:1000000000,$lt:2500000000}};
+				break;
+			case 4:
+				cond = {wid:{$gt:2500000000,$lt:9900000000}};
+				break;
+		}
+		
+		DBTypes.Clan.count(cond).exec(function(err,count){
+			DBTypes.Clan.find(cond).select("wid tag").sort("tag").limit(30).skip(skip).exec(function(err,docs){
+				var ret = {status:"ok",count:count,list:[]};
+				_.each(docs,function(clan){
+					ret.list.push({tag:clan.tag,wid:clan.wid});
+				});
+				wait_callback(ret);
+			});
+		});
+		
+		return function(callback) {
+			wait_callback = callback;
+		}
+	},
+	
+	score: function(options) {
+		var self = this,
+			wait_callback = null,
+			wid = parseInt(options[0]);
+		
+		return function(callback) {
+			wait_callback = callback;
+
+			DBTypes.ClanStats.findOne({_id:wid}).exec(function(err, doc){
+				var ret = {
+					status: "ok",
+					score: doc.value
+				}
+				wait_callback(ret);
+			});
+		}
+	},
+	
+	scores: function(options) {
+		var self = this,
+			wait_callback = null,
+			region = options[0]?parseInt(options[0]):-1,
+			from = options[1]?parseInt(options[1])*30:0;
+		
+		return function(callback) {
+			wait_callback = callback;
+
+			var cond = {};
+			switch(region){
+			case 0:
+				cond._id = {$lt:500000000,$gt:0};
+				break;
+			case 1:
+				cond._id = {$lt:1000000000,$gt:500000000};
+				break;
+			case 2:
+				cond._id = {$lt:2500000000,$gt:1000000000};
+				break;
+			case 4:
+				cond._id = {$gt:2500000000};
+				break;
+			}
+			
+			DBTypes.ClanStats.find(cond).sort("-value.SCR").skip(from).limit(10).exec(function(err, docs){
+				var ret = {
+					status: "ok",
+					scores: []
+				}
+				var wids = _.map(docs,function(doc){return doc._id;}),
+					clans = docs;
+				DBTypes.Clan.find({wid:{$in:wids}}).select("wid tag").exec(function(err,docs){
+					var names = {};
+					_.each(docs,function(doc){names[doc.wid] = doc.tag;});
+					
+					_.each(clans,function(doc){
+						var retDoc = doc.value;
+						retDoc.wid = doc._id;
+						retDoc.tag = names[doc._id]?names[doc._id]:"";
+						ret.scores.push(retDoc);
+					});
+					
+					wait_callback(ret);
+				});
+			});
 		}
 	},
 });
