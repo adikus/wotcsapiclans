@@ -229,7 +229,7 @@ module.exports = app = cls.Class.extend({
 				break;
 			}
 			
-			DBTypes.ClanStats.find(cond).sort("-value.SCR").skip(from).limit(30).exec(function(err, docs){
+			DBTypes.ClanStats.find(cond).sort("-value.SC3").skip(from).limit(30).exec(function(err, docs){
 				var ret = {
 					status: "ok",
 					scores: []
