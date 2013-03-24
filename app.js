@@ -106,7 +106,7 @@ module.exports = app = cls.Class.extend({
 	threadInfo: function(){
 		var ret = [];
 		_.each(this.threads,function(thread){
-			var retT = {inactive:thread.timeInactive};
+			var retT = {inactive:thread.timeInactive()};
 			if(thread.clan){
 				retT.name = thread.clan.doc?thread.clan.doc.name:"Loading...";
 				retT.wid = thread.clan.wid;
