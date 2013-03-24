@@ -8,8 +8,18 @@ module.exports = Thread = cls.Class.extend({
 		this.clan = clan;
 		this.id = 0;
 		this.r = 0;
-		this.active = 0;
+		this.active = new Date();
 		if(callback)this.onDone(callback);
+		
+		var self = this;
+		
+		setInterval(function(){
+			if(self.timeInactive() > 30000 && !self.t){
+				console.log("Inactive: "+self.clan.wid);
+				self.clan = self.timeout_callback(self.clan.wid);
+				self.loadClan();
+			}
+		},5000);
 	},
 	
 	start: function() {
@@ -34,7 +44,7 @@ module.exports = Thread = cls.Class.extend({
 		var self = this;
 		
 		if(!this.clan){
-			setTimeout(function(){
+			this.t = setTimeout(function(){
 				self.clan = self.done_callback();
 				self.loadClan();
 			},1000);
@@ -63,7 +73,7 @@ module.exports = Thread = cls.Class.extend({
 					self.loadClan();
           			return false;  
         		}
-				console.log('Loaded: '+self.clan.wid);
+				//console.log('Loaded: '+self.clan.wid);
 				self.clan.save(function(err){
 					if(err)console.log(err);
 					

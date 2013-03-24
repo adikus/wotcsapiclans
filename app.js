@@ -64,7 +64,15 @@ module.exports = app = cls.Class.extend({
 		});
 		thread.onTimeout(function(wid) {
 			var clan = self.shiftClan();
-			if(wid)self.idList.unshift(wid);
+			if(wid){
+				DBTypes.Clan.findOne({wid:wid},function(err,doc){
+					doc.locked = 0;
+					doc.save(function(){
+						console.log("Unlocked after fail: "+wid);
+						self.idList.unshift(wid);
+					});
+				});
+			}
 			return clan;
 		});
 		thread.start();
@@ -86,7 +94,7 @@ module.exports = app = cls.Class.extend({
 		time.setTime(time.getTime()-60000);
 			
 		DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
-			var ret = {id_list: self.idList,threads: self.threadInfo()};
+			var ret = {id_list: self.idList,threads: self.threadInfo(),thread_count:self.threads.length};
 			ret["updated1m"] = count;
 			time.setTime(time.getTime()+60000-3600000);
 			DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
@@ -110,8 +118,8 @@ module.exports = app = cls.Class.extend({
 			if(thread.clan){
 				retT.name = thread.clan.doc?thread.clan.doc.name:"Loading...";
 				retT.wid = thread.clan.wid;
-				ret.push(retT);
 			}
+			ret.push(retT);
 		});
 		return ret;
 	},
@@ -137,6 +145,33 @@ module.exports = app = cls.Class.extend({
 				clan.doc = doc;
 			}
 			wait_callback(clan.getData());
+		});
+		
+		return function(callback) {
+			wait_callback = callback;
+		}
+	},
+	
+	playerChanges: function(options) {
+		var self = this,
+			wid = parseInt(options[0]),
+			wait_callback = null;
+			
+		DBTypes.MemberChange.find({player_id: wid},function(err,docs){
+			var idList = _.map(docs,function(change){return change.clan;}),
+				names = {},
+				ret = {status: "ok"};
+			DBTypes.Clan.find({_id:{$in:idList}},function(err,clans){
+				_.each(clans,function(clan){names[clan._id] = {tag:clan.tag,name:clan.name,wid:clan.wid}});
+				ret.changes = _.map(docs,function(change){
+					return {
+						change: change.change,
+						clan: names[change.clan],
+						updated_at: change.updated_at
+					};
+				});
+				wait_callback(ret);
+			});
 		});
 		
 		return function(callback) {

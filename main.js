@@ -30,6 +30,10 @@ function main(){
   		return app.changes(options);
   	});
   	
+  	server.setRoute('player_changes',function(options){
+  		return app.playerChanges(options);
+  	});
+  	
   	server.setRoute('score',function(options){
   		return app.score(options);
   	});
