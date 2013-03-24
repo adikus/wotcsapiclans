@@ -8,6 +8,7 @@ module.exports = Thread = cls.Class.extend({
 		this.clan = clan;
 		this.id = 0;
 		this.r = 0;
+		this.active = 0;
 		if(callback)this.onDone(callback);
 	},
 	
@@ -24,6 +25,11 @@ module.exports = Thread = cls.Class.extend({
 		this.timeout_callback = callback;
 	},
 	
+	timeInactive: function(){
+		var now = new Date();
+		return now.getTime() - this.active.getTime();
+	},
+	
 	loadClan: function() {
 		var self = this;
 		
@@ -34,6 +40,8 @@ module.exports = Thread = cls.Class.extend({
 			},1000);
 			return false;
 		}
+		
+		this.active = new Date()
 		
 		this.clan.find(function(err){
 			

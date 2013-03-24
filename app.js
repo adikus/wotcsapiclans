@@ -86,7 +86,7 @@ module.exports = app = cls.Class.extend({
 		time.setTime(time.getTime()-60000);
 			
 		DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
-			var ret = {loading: self.idList};
+			var ret = {id_list: self.idList,threads: self.threadInfo()};
 			ret["updated1m"] = count;
 			time.setTime(time.getTime()+60000-3600000);
 			DBTypes.Clan.count({updated_at:{$gt:time}},function(err, count){
@@ -101,6 +101,19 @@ module.exports = app = cls.Class.extend({
 		return function(callback) {
 			wait_callback = callback;
 		}
+	},
+	
+	threadInfo: function(){
+		var ret = [];
+		_.each(this.threads,function(thread){
+			var retT = {inactive:thread.timeInactive};
+			if(thread.clan){
+				retT.name = thread.clan.doc?thread.clan.doc.name:"Loading...";
+				retT.wid = thread.clan.wid;
+				ret.push(retT);
+			}
+		});
+		return ret;
 	},
 	
 	status: function(options) {
