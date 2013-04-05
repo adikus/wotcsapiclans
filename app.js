@@ -214,6 +214,9 @@ module.exports = app = cls.Class.extend({
 			case 2:
 				cond = {wid:{$gt:1000000000,$lt:2500000000}};
 				break;
+			case 3:
+				cond = {wid:{$lt:2500000000,$gt:2000000000}};
+				break;
 			case 4:
 				cond = {wid:{$gt:2500000000,$lt:9900000000}};
 				break;
@@ -270,7 +273,10 @@ module.exports = app = cls.Class.extend({
 				cond._id = {$lt:1000000000,$gt:500000000};
 				break;
 			case 2:
-				cond._id = {$lt:2500000000,$gt:1000000000};
+				cond._id = {$lt:2000000000,$gt:1000000000};
+				break;
+			case 3:
+				cond._id = {$lt:2500000000,$gt:2000000000};
 				break;
 			case 4:
 				cond._id = {$gt:2500000000};
