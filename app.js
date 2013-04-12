@@ -80,8 +80,10 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	shiftClan: function() {
-		var wid = this.idList.shift(),
-			clan = new Clan(wid);		
+		var wid = this.idList.shift();
+		while(wid && wid > 2500000000)wid = this.idList.shift();
+			
+		var clan = new Clan(wid);		
 		if(wid)return clan;
 			else return false;		
 	},
