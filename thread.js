@@ -45,6 +45,7 @@ module.exports = Thread = cls.Class.extend({
 		
 		if(!this.clan){
 			this.t = setTimeout(function(){
+				self.t = false;
 				self.clan = self.done_callback();
 				self.loadClan();
 			},1000);
