@@ -1,6 +1,11 @@
-mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    Config = require("./config");
 
-var clanSchema = mongoose.Schema({ 
+var oldDB = mongoose.createConnection(process.env.MONGOHQ_URL || Config.defaultMongo);
+var playerDB = mongoose.createConnection(process.env.WOTCS_PLAYERDB);
+var clanDB = mongoose.createConnection(process.env.WOTCS_CLANDB);
+
+var oldClanSchema = mongoose.Schema({
 	name: 'string',
 	tag: 'string',
 	description: '',
@@ -13,13 +18,25 @@ var clanSchema = mongoose.Schema({
 	updated_at: 'date',
 	players_updated_at: 'date'
 });
-var Clan = mongoose.model('Clan', clanSchema);
+var OldClan = oldDB.model('Clan', oldClanSchema);
+
+var clanSchema = mongoose.Schema({ 
+	_id: 'number',
+	n: 'string',
+	t: 'string',
+	d: 'string',
+	m: 'string',
+	s: 'string',
+	ms: 'mixed',
+	u: 'date'
+});
+var Clan = clanDB.model('Clan', clanSchema);
 
 var clanStatsSchema = mongoose.Schema({ 
 	_id: 'number',
 	value: 'mixed'
 });
-var ClanStats = mongoose.model('ClanStats', clanStatsSchema, 'clan_stats');
+var OldClanStats = oldDB.model('ClanStats', clanStatsSchema, 'clan_stats');
 
 var playerSchema = mongoose.Schema({
 	wid: {type:'string',index: {unique: true, dropDups: true}},
@@ -30,19 +47,41 @@ var playerSchema = mongoose.Schema({
 	stats_current: 'mixed',
 	updated_at: 'date'
 });
-var PlayerDB = mongoose.model('Player', playerSchema);
+var OldPlayerDB = oldDB.model('Player', playerSchema);
 
-var memberChangeSchema = mongoose.Schema({
+var newPlayerSchema = mongoose.Schema({
+	_id: 'number',
+	n: 'string',
+	s: 'number',
+	c: 'number',
+	sc: 'mixed',
+	v: 'mixed',
+	u: 'date'
+});
+var Player = playerDB.model('Player', newPlayerSchema);
+
+var oldMemberChangeSchema = mongoose.Schema({
 	clan: { type: mongoose.Schema.Types.ObjectId, ref: 'Clan' },
 	player_id: 'string',
 	change: 'number',
 	updated_at: 'date'
 });
-var MemberChange = mongoose.model('MemberChange', memberChangeSchema);
+var OldMemberChange = oldDB.model('MemberChange', oldMemberChangeSchema);
+
+var memberChangeSchema = mongoose.Schema({
+	c: 'number',
+	p: 'number',
+	ch: 'number',
+	u: 'date'
+});
+var MemberChange = clanDB.model('MemberChange', memberChangeSchema);
 
 module.exports = DBTypes = {
+	OldClan: OldClan,
+	OldPlayer: OldPlayerDB,
+	OldMemberChange: OldMemberChange,
+	OldClanStats: OldClanStats,
 	Clan: Clan,
-	Player: PlayerDB,
+	Player: Player,
 	MemberChange: MemberChange,
-	ClanStats: ClanStats
 };
