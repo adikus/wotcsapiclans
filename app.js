@@ -287,7 +287,7 @@ module.exports = app = cls.Class.extend({
 				break;
 			}
 			
-			DBTypes.OldClanStats.find(cond).sort("-value.SC3").skip(skip).limit(limit).exec(function(err, docs){
+			DBTypes.Stat.find(cond).select("_id SC").sort("-SC").skip(skip).limit(limit).exec(function(err, docs){
 				var ret = {
 					status: "ok",
 					scores: []
@@ -299,7 +299,7 @@ module.exports = app = cls.Class.extend({
 					_.each(docs,function(doc){names[doc._id] = doc.t;});
 					
 					_.each(clans,function(doc){
-						var retDoc = doc.value;
+						var retDoc = {SC3:doc.SC};
 						retDoc.wid = doc._id;
 						retDoc.tag = names[doc._id]?names[doc._id]:"";
 						ret.scores.push(retDoc);

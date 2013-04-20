@@ -5,21 +5,6 @@ var oldDB = mongoose.createConnection(process.env.MONGOHQ_URL || Config.defaultM
 var playerDB = mongoose.createConnection(process.env.WOTCS_PLAYERDB);
 var clanDB = mongoose.createConnection(process.env.WOTCS_CLANDB);
 
-var oldClanSchema = mongoose.Schema({
-	name: 'string',
-	tag: 'string',
-	description: '',
-	motto: 'string',
-	wid: {type:'number',index: {unique: true, dropDups: true}},
-	region: 'number',
-	status: 'string',
-	locked: 'number',
-	members: 'mixed',
-	updated_at: 'date',
-	players_updated_at: 'date'
-});
-var OldClan = oldDB.model('Clan', oldClanSchema);
-
 var clanSchema = mongoose.Schema({ 
 	_id: 'number',
 	n: 'string',
@@ -32,23 +17,6 @@ var clanSchema = mongoose.Schema({
 });
 var Clan = clanDB.model('Clan', clanSchema);
 
-var clanStatsSchema = mongoose.Schema({ 
-	_id: 'number',
-	value: 'mixed'
-});
-var OldClanStats = oldDB.model('ClanStats', clanStatsSchema, 'clan_stats');
-
-var playerSchema = mongoose.Schema({
-	wid: {type:'string',index: {unique: true, dropDups: true}},
-	name: 'string',
-	status: 'string',
-	locked: 'number',
-	clan_id: 'string',
-	stats_current: 'mixed',
-	updated_at: 'date'
-});
-var OldPlayerDB = oldDB.model('Player', playerSchema);
-
 var newPlayerSchema = mongoose.Schema({
 	_id: 'number',
 	n: 'string',
@@ -60,14 +28,6 @@ var newPlayerSchema = mongoose.Schema({
 });
 var Player = playerDB.model('Player', newPlayerSchema);
 
-var oldMemberChangeSchema = mongoose.Schema({
-	clan: { type: mongoose.Schema.Types.ObjectId, ref: 'Clan' },
-	player_id: 'string',
-	change: 'number',
-	updated_at: 'date'
-});
-var OldMemberChange = oldDB.model('MemberChange', oldMemberChangeSchema);
-
 var memberChangeSchema = mongoose.Schema({
 	c: 'number',
 	p: 'number',
@@ -76,12 +36,17 @@ var memberChangeSchema = mongoose.Schema({
 });
 var MemberChange = clanDB.model('MemberChange', memberChangeSchema);
 
+var statSchema = mongoose.Schema({
+	_id: 'number',
+	s: 'mixed',
+	SC: 'number',
+});
+var Stat = oldDB.model('Stat', statSchema);
+
+
 module.exports = DBTypes = {
-	OldClan: OldClan,
-	OldPlayer: OldPlayerDB,
-	OldMemberChange: OldMemberChange,
-	OldClanStats: OldClanStats,
 	Clan: Clan,
 	Player: Player,
 	MemberChange: MemberChange,
+	Stat: Stat,
 };

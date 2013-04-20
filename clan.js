@@ -88,6 +88,10 @@ module.exports = Clan = cls.Class.extend({
 						self.checkIfNew(wid);
 					}
 				});
+			}else{
+				_.each(self.memberIds,function(wid){
+					self.checkIfNew(wid);
+				});
 			}
 			this.doc.ms = this.memberIds;
 			this.doc.markModified('ms');
@@ -124,7 +128,9 @@ module.exports = Clan = cls.Class.extend({
 		ret.motto = this.doc.m;
 		ret.description = this.doc.d;
 		ret.members = this.doc.ms;
+		ret.clan_status = this.doc.s;
 		ret.updated_at = this.doc.u;
+		ret.status = "ok";
 		
 		return ret;
 	},
