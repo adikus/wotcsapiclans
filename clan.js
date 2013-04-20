@@ -141,7 +141,7 @@ module.exports = Clan = cls.Class.extend({
 			var wids = _.map(docs,function(change){return change.p;});
 			var names = {};
 			
-			DBTypes.Player.find({_id:{$in:wids}}).select("_id name").exec(function(err, players){
+			DBTypes.Player.find({_id:{$in:wids}}).select("_id n").exec(function(err, players){
 				_.each(players,function(player){names[player._id] = player.n});
 				ret.changes = _.map(docs,function(change){
 					return {
