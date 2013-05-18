@@ -74,6 +74,7 @@ module.exports = Clan = cls.Class.extend({
 							u: new Date()
 						});
 						mc.save();
+						self.updatePlayer(wid,0);
 					}
 				});
 				_.each(this.memberIds,function(wid){
@@ -85,7 +86,7 @@ module.exports = Clan = cls.Class.extend({
 							u: new Date()
 						});
 						mc.save();
-						self.checkIfNew(wid);
+						self.updatePlayer(wid,self.wid);
 					}
 				});
 			}else{
@@ -100,17 +101,24 @@ module.exports = Clan = cls.Class.extend({
     	return true;
   	},
   	
-  	checkIfNew: function(wid) {
+  	updatePlayer: function(wid,clan) {
   		var self = this;
   		DBTypes.Player.findOne({_id:wid},function(err, doc){
 			if(!doc){
 				doc = new DBTypes.Player();
 				doc._id = wid;
 				doc.s = "0";
-				doc.c = self.wid;
+				doc.c = clan;
 				doc.save(function(err){
-					if(err)console.log(err);
-					else console.log("New player created: "+wid+" (clan: "+self.wid+")");
+					if(err)console.log(err,"Player");
+					else console.log("New player created: "+wid+" (clan: "+clan+")");
+				});
+			}else{
+				var prev = doc.c;
+				doc.c = clan;
+				doc.save(function(err){
+					if(err)console.log(err,"Player");
+					else console.log("Player updated: "+wid+" (clan: "+prev+"->"+clan+")");
 				});
 			}
 		});

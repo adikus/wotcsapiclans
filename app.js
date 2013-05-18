@@ -68,7 +68,7 @@ module.exports = app = cls.Class.extend({
 								delete self.successCallbacks[clan.wid];
 							}
 							clan.save(function(err){
-								if(err)console.log(err);
+								if(err)console.log(err,"Clan");
 								if(self.retries[clan.wid])delete self.retries[clan.wid];
 							});
 						}
