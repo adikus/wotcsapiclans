@@ -84,6 +84,20 @@ module.exports = app = cls.Class.extend({
 		}
 	},
 	
+	errors: function(options) {
+		var s = options[0]?options[0]:-1;
+		
+		return function(callback) {
+			DBTypes.ErrorLog.find().sort("-t").skip(s>=0?s:0).limit(s>=0?1:1000).exec(function(err,docs){
+				ret = [];
+				_.each(docs,function(doc){
+					ret.push({e:doc.e.split("\n")[0],tr:doc.e.split("\n").slice(1),t:doc.t});
+				})
+				callback(ret);
+			});
+		}
+	},
+	
 	globalStatus: function(options) {		
 		var self = this,
 			wait_callback = null,
@@ -142,7 +156,7 @@ module.exports = app = cls.Class.extend({
 			wid = parseInt(options[0]);
 			
 		return function(callback) {
-			if(_.contains(this.clanList,wid)){
+			if(_.contains(self.clanList,wid)){
 				DBTypes.Clan.findOne({_id: wid},function(err,doc){
 					if(doc){
 						clan = new Clan(wid);

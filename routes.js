@@ -5,5 +5,6 @@ module.exports = Routes = {
 	player_changes: "playerChanges",
 	score: "score",
 	scores: "scores",
-	list: "list"
+	list: "list",
+	errors: "errors"
 };
