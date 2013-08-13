@@ -154,7 +154,7 @@ module.exports = app = cls.Class.extend({
 	status: function(options) {
 		var self = this,
 			wid = parseInt(options[0]);
-		if(isNaN(wid))return {status:"error",error:"Bad clan id"};	
+		if(isNaN(wid))return {status:"error",error:"Bad clan id"};
 		return function(callback) {
 			if(_.contains(self.clanList,wid)){
 				DBTypes.Clan.findOne({_id: wid},function(err,doc){
