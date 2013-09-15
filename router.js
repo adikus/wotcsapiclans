@@ -1,50 +1,51 @@
-var cls = require("./lib/class"),
-    _ = require("underscore"),
-    url = require("url");
+var cls = require("./lib/class");
+var _ = require("underscore");
+var url = require("url");
+var BaseController = require('./controllers/base_controller');
 
 module.exports = router = cls.Class.extend({
-	init: function(){
-		this.routes = {};
-	},
-
-	setRoute: function(route,callback){
-		this.routes[route] = callback;
+	init: function(app){
+        this.app = app;
 	},
 	
-	route: function(requrl,data){
-		var url_parts = url.parse(requrl,true),
-	    	path_parts = url_parts.path.split("/"),
-	    	path = path_parts[1],
-	    	options = [];
-	    
-	    for(var i=2;i<path_parts.length;i++){
-	    	options.push(path_parts[i]);
-	    }
-	    
-	    options = this.parseOptions(options);
+	route: function(reqUrl, data, callback){
+        "use strict";
 
-	    var ret = {};
-	    if(path === ""){
-	    	ret = this.routes["status"](options);
-	    }else if(this.routes[path]){
-	    	ret = this.routes[path](options);
-	    }else{
-	    	ret = {status:'Error',error:''};
-	    	if(!path)ret.error += 'Method not defined;';
-	    	if(path && !this.routes[path])ret.error += 'Method '+path+' does not exist;';
-	    }
-		return ret;
+		var path_parts = url.parse(reqUrl, true).path.split("/");
+	    var	controllerName = path_parts[1] ? path_parts[1] : 'status';
+        var actionName = path_parts[2] ? path_parts[2] : false;
+	    var	options = this.parseOptions(path_parts);
+        var controller;
+
+        if(!this.app.controllers[controllerName]){
+            controller = new BaseController(this.app, controllerName, callback, options, data);
+            controller.fail({error: 'Controller not found.'});
+            return false;
+        }
+
+        controller = new this.app.controllers[controllerName](this.app, controllerName, callback, options, data);
+        controller.callAction(actionName);
+        return true;
 	},
 	
-	parseOptions: function(options){
-		var ret = [];
-		_.each(options,function(option){
-			var i = option.indexOf("=");
-			if(i != -1){
-				var key = option.substring(0, i),
-					val = option.substring(i+1);
+	parseOptions: function(path_parts){
+        "use strict";
+
+        var options = {};
+
+        for(var i=3;i<path_parts.length;i++){
+            options[i-3] = path_parts[i];
+        }
+
+		var ret = {};
+		_.each(options,function(option, i){
+			var index = option.indexOf("=");
+			if(index != -1){
+				var key = option.substring(0, index),
+					val = option.substring(index+1);
 			ret[key] = val;
-			} else ret.push(option);
+            ret[i] = val;
+			} else { ret[i] = option; }
 		});
 		return ret; 
 	}

@@ -1,29 +1,18 @@
-mongoose = require('mongoose')
-
 function main(){
-    var Server = require('./server'),
-        App = require('./app'),
-    	DBTypes = require("./db_types"),
-    	Config = require("./config"),
-    	Routes = require("./routes"),
-    	_ = require("underscore");
-	
-  	server = new Server(process.env.PORT || Config.defaultPort);
-  	app = new App();
-	
-	_.each(Routes,function(fName,route){
-		server.setRoute(route,function(options){
-	  		return app[fName](options);
-	  	});
-	});
-	
-	process.on('uncaughtException',function(E){
-		e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});
-		e.save(function(){
-			console.log(E);
-			process.exit(1);
-		});
-	});
+    "use strict";
+
+    var App = require('./app');
+
+    console.log('Booting application.');
+
+    var app = new App();
+
+    process.on('uncaughtException',function(E){
+        console.log(E.stack);
+        setTimeout(function(){
+            process.exit(1);
+        },10);
+    });
 }
 
 main();

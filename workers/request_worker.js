@@ -1,19 +1,22 @@
-var cls = require("./lib/class"),
+var cls = require("./../lib/class"),
     _ = require("underscore"),
-    Config = require("./config"),
-    Request = require("./request");
+    Request = require("./../request");
     
-module.exports = ReqManager = cls.Class.extend({
-	init: function(simultaneousReqs){
+module.exports = cls.Class.extend({
+	init: function(app, simultaneousReqs){
+        this.app = app;
+
 		this.rMax = simultaneousReqs;
 		this.r = 0;
 		this.ids = [];
 		this.successTimes = [];
 		this.times = [];
-		
-		var self = this;
-		setInterval(function(){self.step();},50);
 	},
+
+    run: function () {
+        var self = this;
+        setInterval(function(){self.step();},50);
+    },
 	
 	addReq: function(req, wid, success, timeout){
 		this.ids.push({r:req,w:wid,s:[success],t:timeout});
@@ -32,8 +35,8 @@ module.exports = ReqManager = cls.Class.extend({
 	startRequest: function(id){
 		var self = this,
 			time = new Date();
-		
-		req = new Request(id.r,id.w);
+
+		var req = new Request(id.r,id.w);
 			
 		req.onSuccess(function(data){
 			_.each(id.s,function(s){
@@ -61,27 +64,27 @@ module.exports = ReqManager = cls.Class.extend({
 		if(!f)return -1;
 		return ret;
 	},
+
+    canTakeMore: function () {
+        return this.ids.length < Math.min(Math.max(4,this.speed()*2),20)
+    },
 	
 	addSuccessCallback: function(wid,success){
-		for(var i in this.ids){
+		for(var i=0;i<this.ids.length;i++){
 			if(this.ids[i].w == wid)this.ids[i].s.push(success);
 		}
 	},
 	
 	getAverageTime: function() {
 		var total = _.reduce(this.times, function(memo, time){ return memo + time; }, 0);
-		return this.times.length > 0 ? total / this.times.length : 0;
+		return this.times.length > 0 ? Math.round( total / this.times.length * 100)/100 : 0;
 	},
 	
 	speed: function(){
 		if(this.successTimes.length > 0){
 			var diff = this.getDiff(this.successTimes[0],_.last(this.successTimes))/1000;
-			return diff == 0 ? 0 : this.successTimes.length / diff;
+			return diff == 0 ? 0 :  Math.round(this.successTimes.length / diff * 100)/100;
 		} else return 0;
-	},
-	
-	setSimultaneous: function(simultaneous) {
-		this.rMax = simultaneous;
 	},
 	
 	getDiff: function(t1,t2) {
@@ -94,5 +97,5 @@ module.exports = ReqManager = cls.Class.extend({
 		
 		this.times.push(this.getDiff(s,t));
 		if(this.times.length > 100)this.times.shift();
-	},
+	}
 });
