@@ -10,7 +10,7 @@ module.exports = BaseController.extend({
 
     info: function () {
         var self = this;
-        var id = parseInt(this.options[0]);
+        var id = parseInt(this.options[0],10);
         if(isNaN(id)){
             this.fail({error:"Bad clan id"});
             return false;
@@ -37,9 +37,9 @@ module.exports = BaseController.extend({
 
     changes: function () {
         var self = this;
-        var id = parseInt(this.options[0]);
-        var limit = this.options.limit ? this.options.limit : 20;
-        var page = this.options.page ? this.options.page : 1;
+        var id = parseInt(this.options[0],10);
+        var limit = this.options.limit || 20;
+        var page = this.options.page || 1;
         var skip = (page-1)*limit;
         if(isNaN(id)){
             this.fail({error:"Bad clan id"});
@@ -52,12 +52,12 @@ module.exports = BaseController.extend({
             var names = {};
 
             self.app.models.Players.find({_id:{$in:IDs}}).select("_id n").exec(function(err, players){
-                _.each(players,function(player){names[player._id] = player.n});
+                _.each(players,function(player){names[player._id] = player.n;});
                 ret.changes = _.map(changes,function(change){
                     return {
                         player: change.p,
                         change: change.ch,
-                        name: names[change.p]?names[change.p]:"",
+                        name: names[change.p] || "",
                         updated_at: change.u
                     };
                 });

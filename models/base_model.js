@@ -34,7 +34,7 @@ BaseModel = cls.Class.extend({
     },
 
     save: function (callback) {
-        this.attributes.save(function(err){if(callback)callback(err);});
+        this.attributes.save(function(err){if(callback){callback(err);}});
     }
 
 

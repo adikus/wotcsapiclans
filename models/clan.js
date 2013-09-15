@@ -58,19 +58,20 @@ module.exports = BaseModel.extend({
 
     getMemberIDs: function (members) {
         var IDs = [];
-        for(var i = 0;i < members.length;i++){
+        var i;
+        for(i = 0;i < members.length;i++){
             var pid = members[i].account_id;
             IDs.push(pid);
         }
         IDs = _.map(IDs,function(wid){
-            return parseInt(wid);
+            return parseInt(wid, 10);
         });
         return IDs;
     },
 
     ensureNumericIDs: function () {
         this.attributes.ms = _.map(this.attributes.ms,function(wid){
-            return parseInt(wid);
+            return parseInt(wid, 10);
         });
     },
 

@@ -33,7 +33,9 @@ module.exports = cls.Class.extend({
 
         if(this.app.requestWorker.canTakeMore() && this.queueLength() > 0){
             var clan = this.Clans.new(this.getIdFromQueue());
-            if(this.isMissing(clan.id))return false;
+            if(this.isMissing(clan.id)){
+                return false;
+            }
             if (clan.getRegion() != shared.Regions.VN){
                 this.RequestWorker.addReq('clans', clan.id, function (data) {
                     clan.update(shared.parseData(data), function (reply) {
@@ -55,7 +57,9 @@ module.exports = cls.Class.extend({
         if(reply.status == 'error' && reply.error == 'ParseError'){
             console.log('Error:',reply.error,clan.id);
             this.retries[clan.id] = this.retries[clan.id]?this.retries[clan.id]+1:1;
-            if(this.retries[clan.id] < 3)this.loadQueue.unshift(clan.id);
+            if(this.retries[clan.id] < 3){
+                this.loadQueue.unshift(clan.id);
+            }
         }else{
             if(reply.status == 'error'){
                 if(reply.error == 'CLANS_CLAN_DELETED' || reply.error == 'CLANS_CLAN_MISSING'){
@@ -74,8 +78,12 @@ module.exports = cls.Class.extend({
                 this.ensurePlayersExistence(reply.clanPlayerIDs, clan.id);
             }
             clan.save(function(err){
-                if(err)console.log(err,"Clan",clan.id);
-                if(self.retries[clan.wid])delete self.retries[clan.wid];
+                if(err){
+                    console.log(err,"Clan",clan.id);
+                }
+                if(self.retries[clan.id]){
+                    delete self.retries[clan.id];
+                }
             });
         }
     },
@@ -103,7 +111,9 @@ module.exports = cls.Class.extend({
                 player.attributes.c = clanID;
                 if(prevID != clanID){
                     player.save(function(err){
-                        if(err)console.log(err,"Player");
+                        if(err){
+                            console.log(err,"Player");
+                        }
                         else {
                             if(isNew){
                                 console.log("New player created: "+id+" (clan: "+clanID+")");
@@ -120,7 +130,9 @@ module.exports = cls.Class.extend({
     handleTimeout: function(clan) {
         console.log('Timeout:',clan.wid);
         this.retries[clan.id] = this.retries[clan.id]?this.retries[clan.id]+1:1;
-        if(this.retries[clan.id] < 3)this.loadQueue.unshift(clan.id);
+        if(this.retries[clan.id] < 3){
+            this.loadQueue.unshift(clan.id);
+        }
     },
 
     execSuccessCallbacks: function(clan){
@@ -133,7 +145,9 @@ module.exports = cls.Class.extend({
     },
 
     addSuccessCallback: function(id, callback){
-        if(!this.successCallbacks[id])this.successCallbacks[id] = [];
+        if(!this.successCallbacks[id]){
+            this.successCallbacks[id] = [];
+        }
         this.successCallbacks[id].push(callback);
     },
 
@@ -160,7 +174,9 @@ module.exports = cls.Class.extend({
     },
 
     duration: function () {
-        if(!this.startTime)return false;
+        if(!this.startTime){
+            return false;
+        }
         return Date.now() - this.startTime.getTime();
     },
 

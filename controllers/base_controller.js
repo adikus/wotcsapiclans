@@ -13,7 +13,7 @@ module.exports = cls.Class.extend({
     },
 
     callAction: function (action) {
-        this.action = action ? action : this.action;
+        this.action =  action || this.action;
         if(typeof this[this.action] !== 'function'){
             this.fail({error: 'Action not found.'});
             return false;

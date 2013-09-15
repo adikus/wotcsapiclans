@@ -13,19 +13,23 @@ module.exports = Request = cls.Class.extend({
 				  host: host,
 				  port: 80,
 				  path: '/community/'+method+'/'+id+'/api/'+api+'/?source_token=WG-WoT_Assistant-1.3.2',
-				  method: 'GET',
+				  method: 'GET'
 				};
 		
 		this.request = http.request(options, function(res) {
 			var timeout = res.statusCode == 504;
 			
 			res.on('data', function (chunk) {
-				if(!timeout)self.data += chunk.toString('utf8');
+				if(!timeout){
+                    self.data += chunk.toString('utf8');
+                }
 			});
 			
 			res.on('end', function (chunk) {
 				if(!timeout){
-					if(chunk)self.data += chunk.toString('utf8');
+					if(chunk){
+                        self.data += chunk.toString('utf8');
+                    }
 					self.success_callback(self.data);
 				}else {
 					self.timeout_callback();
@@ -49,11 +53,11 @@ module.exports = Request = cls.Class.extend({
 	},
 	
 	getHost: function(id) {
-		if(id > 3000000000)return "api.worldoftanks.kr";
-		if(id > 2500000000)return "portal-wot.go.vn";
-    	if(id > 2000000000)return "api.worldoftanks.asia";
-		if(id > 1000000000)return "api.worldoftanks.com";
-		if(id > 500000000)return "api.worldoftanks.eu";
+		if(id > 3000000000){return "api.worldoftanks.kr";}
+		if(id > 2500000000){return "portal-wot.go.vn";}
+    	if(id > 2000000000){return "api.worldoftanks.asia";}
+		if(id > 1000000000){return "api.worldoftanks.com";}
+		if(id > 500000000){return "api.worldoftanks.eu";}
 		return "api.worldoftanks.ru";
 	}
 });

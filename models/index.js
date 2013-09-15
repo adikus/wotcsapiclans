@@ -14,7 +14,9 @@ _.each(Config.database,function (uri, name) {
         } else{
             console.log("Connected to "+name+" DB.");
             connectCountDown--;
-            if(connectCountDown == 0)connected_callback();
+            if(connectCountDown == 0){
+                connected_callback();
+            }
         }
     });
 });

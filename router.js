@@ -12,8 +12,8 @@ module.exports = router = cls.Class.extend({
         "use strict";
 
 		var path_parts = url.parse(reqUrl, true).path.split("/");
-	    var	controllerName = path_parts[1] ? path_parts[1] : 'status';
-        var actionName = path_parts[2] ? path_parts[2] : false;
+	    var	controllerName = path_parts[1] || 'status';
+        var actionName = path_parts[2] || false;
 	    var	options = this.parseOptions(path_parts);
         var controller;
 
@@ -32,8 +32,9 @@ module.exports = router = cls.Class.extend({
         "use strict";
 
         var options = {};
+        var i;
 
-        for(var i=3;i<path_parts.length;i++){
+        for(i=3;i<path_parts.length;i++){
             options[i-3] = path_parts[i];
         }
 

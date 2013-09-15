@@ -10,7 +10,9 @@ BaseCollection = cls.Class.extend({
     },
 
     find: function (conds) {
-        if(!conds)conds = {};
+        if(!conds){
+            conds = {};
+        }
         return this.db.find(conds);
     },
 

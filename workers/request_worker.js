@@ -29,7 +29,9 @@ module.exports = cls.Class.extend({
 		}
 		
 		var now = new Date();
-		if(this.successTimes[0] && this.successTimes[0].getTime() + 10000 < now.getTime())this.successTimes.shift();
+		if(this.successTimes[0] && this.successTimes[0].getTime() + 10000 < now.getTime()){
+            this.successTimes.shift();
+        }
 	},
 	
 	startRequest: function(id){
@@ -61,17 +63,22 @@ module.exports = cls.Class.extend({
 			ret++;
 			return i.w == wid;
 		});
-		if(!f)return -1;
+		if(!f){
+            return -1;
+        }
 		return ret;
 	},
 
     canTakeMore: function () {
-        return this.ids.length < Math.min(Math.max(4,this.speed()*2),20)
+        return this.ids.length < Math.min(Math.max(4,this.speed()*2),20);
     },
 	
 	addSuccessCallback: function(wid,success){
-		for(var i=0;i<this.ids.length;i++){
-			if(this.ids[i].w == wid)this.ids[i].s.push(success);
+		var i;
+        for(i=0;i<this.ids.length;i++){
+			if(this.ids[i].w == wid){
+                this.ids[i].s.push(success);
+            }
 		}
 	},
 	
@@ -84,7 +91,8 @@ module.exports = cls.Class.extend({
 		if(this.successTimes.length > 0){
 			var diff = this.getDiff(this.successTimes[0],_.last(this.successTimes))/1000;
 			return diff == 0 ? 0 :  Math.round(this.successTimes.length / diff * 100)/100;
-		} else return 0;
+		}
+        return 0;
 	},
 	
 	getDiff: function(t1,t2) {
@@ -92,10 +100,14 @@ module.exports = cls.Class.extend({
 	},
 	
 	addTime: function(t,s) {
-		if(this.successTimes.length > 0 && this.getDiff(_.last(this.successTimes),t) > 30000)this.successTimes = [];
+		if(this.successTimes.length > 0 && this.getDiff(_.last(this.successTimes),t) > 30000){
+            this.successTimes = [];
+        }
 		this.successTimes.push(t);
 		
 		this.times.push(this.getDiff(s,t));
-		if(this.times.length > 100)this.times.shift();
+		if(this.times.length > 100){
+            this.times.shift();
+        }
 	}
 });

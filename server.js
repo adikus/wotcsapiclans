@@ -18,7 +18,9 @@ module.exports = cls.Class.extend({
 		    });
 		    
 		    request.on('end', function(chunk) {
-		    	if(chunk)data += chunk.toString('utf8');
+		    	if(chunk){
+                    data += chunk.toString('utf8');
+                }
 		    	
 		    	self.app.router.route(request.url, data, function(status, data) {
                     response.writeHead(status, {
