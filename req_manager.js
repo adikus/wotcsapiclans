@@ -1,7 +1,6 @@
 var cls = require("./lib/class"),
     _ = require("underscore"),
-    Config = require("./config"),
-    Request = require("./request");
+    Request = require("./request.2");
     
 module.exports = ReqManager = cls.Class.extend({
 	init: function(simultaneousReqs){
@@ -43,7 +42,7 @@ module.exports = ReqManager = cls.Class.extend({
 			self.addTime(new Date(),time);
 		});
 		
-		req.onTimeout(function(){
+		req.onError(function(){
 			id.t();
 			self.r--;
 		});

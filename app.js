@@ -54,7 +54,7 @@ module.exports = app = cls.Class.extend({
 		if(this.rm.ids.length < Math.min(Math.max(4,this.rm.speed()*2),20) && self.loadQueue.length > 0){
 			var clan = new Clan(self.loadQueue.shift());
 			if(clan.wid < 2500000000 || clan.wid >= 3000000000){
-				this.rm.addReq('clans',clan.wid,function(data){
+				this.rm.addReq('clan',clan.wid,function(data){
 					clan.find(function(err){
 						if(!clan.parseData(data)){
 							console.log('Parse error: '+clan.wid);

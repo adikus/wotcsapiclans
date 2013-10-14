@@ -33,19 +33,20 @@ module.exports = Clan = cls.Class.extend({
 		var self = this;
 		
 	    try{
-	        clanData = JSON.parse(data);
+	        var clanData = JSON.parse(data);
+            clanData.data = clanData.data[this.wid];
 	    }catch(e){
 	        //console.log(e);
 	        return false;
 	    }
 		
-		if(clanData.status == "error"){
-			this.doc.s = clanData.error;
-			this.doc.t = "";
+		if(clanData.status == "error" || !clanData.data){
+			this.doc.s = clanData.error || 'Unknown error';
+			/*this.doc.t = "";
 			this.doc.n = "";
 			this.doc.m = "";
 			this.doc.d = "";
-			this.members_count = 0;
+			this.members_count = 0;*/
 		}
 		else {
 			this.doc.t = clanData.data.abbreviation;

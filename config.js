@@ -1,5 +1,5 @@
 module.exports = Config = {
 	defaultPort: 3001,
 	defaultMongo: "mongodb://localhost/wotcsapi",
-	simultaneousReqs: 12
+	simultaneousReqs: 6
 };
