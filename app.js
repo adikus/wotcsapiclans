@@ -23,7 +23,8 @@ module.exports = app = cls.Class.extend({
 		setInterval(function(){self.step();},50);
 	},
 	
-	loadClansFromDB: function() {
+	loadClansFromDB: function() { 
+		this.retries = {};
 		var self = this;
 		this.loadingFromDB = true;
 		
