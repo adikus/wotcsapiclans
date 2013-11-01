@@ -74,7 +74,7 @@ module.exports = Clan = cls.Class.extend({
 							ch: -1,
 							u: new Date()
 						});
-						mc.save();
+                        self.saveMC(mc);
 						self.updatePlayer(wid,0);
 					}
 				});
@@ -86,7 +86,7 @@ module.exports = Clan = cls.Class.extend({
 							ch: 1,
 							u: new Date()
 						});
-						mc.save();
+                        self.saveMC(mc);
 						self.updatePlayer(wid,self.wid);
 					}
 				});
@@ -101,6 +101,21 @@ module.exports = Clan = cls.Class.extend({
 		this.doc.u = new Date();
     	return true;
   	},
+
+    saveMC: function(mc) {
+        DBTypes.MemberChange.findOne({c:mc.c, p:mc.p},function(err, doc){
+            if(doc){
+                var days = (mc.u.getTime() - doc.u.getTime())/(1000*3600*24);
+                if(days > 3){
+                    mc.save();
+                }else{
+                    console.log('Member change already exists for player:',mc.p);
+                }
+            }else{
+                mc.save();
+            }
+        });
+    },
   	
   	updatePlayer: function(wid,clan) {
   		var self = this;
