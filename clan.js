@@ -65,7 +65,7 @@ module.exports = Clan = cls.Class.extend({
 			this.doc.ms = _.map(this.doc.ms,function(wid){
 				return parseInt(wid);
 			});
-			if(this.doc.ms){
+			if(this.doc.ms && this.memberIds.length > 0){
 				_.each(this.doc.ms,function(wid){
 					if(!_.contains(self.memberIds,wid)){
 						var mc = new DBTypes.MemberChange({
@@ -74,7 +74,7 @@ module.exports = Clan = cls.Class.extend({
 							ch: -1,
 							u: new Date()
 						});
-                        self.saveMC(mc);
+                        //self.saveMC(mc);
 						self.updatePlayer(wid,0);
 					}
 				});
@@ -86,11 +86,11 @@ module.exports = Clan = cls.Class.extend({
 							ch: 1,
 							u: new Date()
 						});
-                        self.saveMC(mc);
+                        //self.saveMC(mc);
 						self.updatePlayer(wid,self.wid);
 					}
 				});
-			}else{
+			}else if(this.memberIds.length > 0){
 				_.each(self.memberIds,function(wid){
 					self.checkIfNew(wid);
 				});
@@ -160,18 +160,20 @@ module.exports = Clan = cls.Class.extend({
 	},
 	
 	getChanges: function(callback) {
+        var self = this;
 		DBTypes.MemberChange.find({c:this.wid}).sort("u").exec(function(err,docs){
+            var filteredChanges = self.filterChanges(docs);
 			var ret = {status: "ok"};
-			var wids = _.map(docs,function(change){return change.p;});
+			var wids = _.map(filteredChanges,function(change){return change.p;});
 			var names = {};
 			
 			DBTypes.Player.find({_id:{$in:wids}}).select("_id n").exec(function(err, players){
 				_.each(players,function(player){names[player._id] = player.n});
-				ret.changes = _.map(docs,function(change){
+				ret.changes = _.map(filteredChanges.reverse(),function(change){
 					return {
 						player: change.p,
 						change: change.ch,
-						name: names[change.p]?names[change.p]:"",
+						name: names[change.p] || "",
 						updated_at: change.u
 					};
 				});
@@ -179,6 +181,24 @@ module.exports = Clan = cls.Class.extend({
 			});
 		});
 	},
+
+    filterChanges: function(changes) {
+        var ret = [];
+        var playerChanges = {};
+        _(changes).each(function(change){
+            if(!playerChanges[change.p]){
+                playerChanges[change.p] = [{u:change.u,ch:change.ch}];
+                ret.push(change);
+            }else{
+                var last = _(playerChanges[change.p]).last();
+                if(last.ch != change.ch){
+                    playerChanges[change.p].push({u:change.u,ch:change.ch});
+                    ret.push(change);
+                }
+            }
+        });
+        return ret.reverse();
+    },
 	
 	getUpdatedAt: function() {
 		return this.doc.updated_at?this.doc.updated_at.getTime():0;
