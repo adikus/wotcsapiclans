@@ -16,11 +16,11 @@ module.exports = app = cls.Class.extend({
 		this.retries = {};
 		this.cycleDuration = "-";
 		
-		this.rm = new ReqManager(Config.simultaneousReqs);
+		this.rm = new ReqManager();
 		this.successCallbacks = {};
 		
 		var self = this;
-		setInterval(function(){self.step();},50);
+		setInterval(function(){self.step();},1);
 	},
 	
 	loadClansFromDB: function() { 
@@ -51,16 +51,17 @@ module.exports = app = cls.Class.extend({
 	
 	step: function() {
 		var self = this;
-		
-		if(this.rm.ids.length < Math.min(Math.max(4,this.rm.speed()*2),20) && self.loadQueue.length > 0){
+		if(this.rm.queueLength() < 600 && self.loadQueue.length > 0){
 			var clan = new Clan(self.loadQueue.shift());
 			if(clan.wid < 2500000000 || clan.wid >= 3000000000){
-				this.rm.addReq('clan',clan.wid,function(data){
-					clan.find(function(err){
+				this.rm.addReq(null, 'clan.info', clan.wid,function(data){
+					clan.find(function(){
 						if(!clan.parseData(data)){
 							console.log('Parse error: '+clan.wid);
-							self.retries[clan.wid] = self.retries[clan.wid]?self.retries[clan.wid]+1:1
-							if(self.retries[clan.wid] < 3)self.loadQueue.unshift(clan.wid);
+							self.retries[clan.wid] = self.retries[clan.wid]?self.retries[clan.wid]+1:1;
+							if(self.retries[clan.wid] < 3){
+								self.loadQueue.unshift(clan.wid);
+							}
 						}else{
 							if(self.successCallbacks[clan.wid]){
 								_.each(self.successCallbacks[clan.wid],function(s){
@@ -69,15 +70,15 @@ module.exports = app = cls.Class.extend({
 								delete self.successCallbacks[clan.wid];
 							}
 							clan.save(function(err){
-								if(err)console.log(err,"Clan");
-								if(self.retries[clan.wid])delete self.retries[clan.wid];
+								if(err){
+									console.log(err,"Clan");
+								}
+								if(self.retries[clan.wid]){
+									delete self.retries[clan.wid];
+								}
 							});
 						}
 					});
-				},function(){
-					console.log('Timeout: '+clan.wid);
-					self.retries[clan.wid] = self.retries[clan.wid]?self.retries[clan.wid]+1:1
-					if(self.retries[clan.wid] < 3)self.loadQueue.unshift(clan.wid);
 				});
 			}
 		}else if(self.loadQueue.length == 0 && !self.loadingFromDB){
@@ -108,6 +109,11 @@ module.exports = app = cls.Class.extend({
 			
 		DBTypes.Clan.count({u:{$gt:time}},function(err, count){
 			var ret = {loader: self.rmInfo(),queue:self.loadQueue.length,last_cycle:self.cycleDuration};
+			ret.request_manager = {
+				queues: self.rm.queueLengths(),
+				current: self.rm.getCurrentReqs(),
+				failed: self.rm.getFailedLength()
+			};
 			ret["updated1m"] = count;
 			time.setTime(time.getTime()+60000-3600000);
 			DBTypes.Clan.count({u:{$gt:time}},function(err, count){

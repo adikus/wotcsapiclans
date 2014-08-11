@@ -8,8 +8,8 @@ function main(){
     	Routes = require("./routes"),
     	_ = require("underscore");
 	
-  	server = new Server(process.env.PORT || Config.defaultPort);
-  	app = new App();
+  	var server = new Server(process.env.PORT || Config.defaultPort);
+  	var app = new App();
 	
 	_.each(Routes,function(fName,route){
 		server.setRoute(route,function(options){
@@ -18,7 +18,7 @@ function main(){
 	});
 	
 	process.on('uncaughtException',function(E){
-		e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});
+		var e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});
 		e.save(function(){
 			console.log(E);
 			process.exit(1);
