@@ -166,13 +166,21 @@ module.exports = cls.Class.extend({
 		});
 
 		req.onError(function(error){
-			self.failTask(task, error);
+			self.failTask(task);
 			self.calcReqStats(start,0);
 			delete self.currentRequests[task.ID];
 		});
+
+		setTimeout(function(){
+			if(self.currentRequests[task.ID]){
+				self.failTask(task);
+				self.calcReqStats(start,0);
+				delete self.currentRequests[task.ID];
+			}
+		},60000);
 	},
 
-	failTask: function(task, error) {
+	failTask: function(task) {
 		if(!task.retries){
 			task.retries = 0;
 		}
