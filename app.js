@@ -112,7 +112,8 @@ module.exports = app = cls.Class.extend({
 			ret.request_manager = {
 				queues: self.rm.queueLengths(),
 				current: self.rm.getCurrentReqs(),
-				failed: self.rm.getFailedLength()
+				failed: self.rm.getFailedLength(),
+				waitTime: Math.round(self.rm.waitTime)
 			};
 			ret["updated1m"] = count;
 			time.setTime(time.getTime()+60000-3600000);

@@ -9,9 +9,10 @@ module.exports = cls.Class.extend({
 		this.config = require("./config");
 
 		this.currentRequests = {};
-		this.lastStart = new Date();
+		this.lastFinish = new Date();
 		this.recentRequests = [];
 		this.failedTasks = [];
+		this.waitTime = this.config.waitTime;
 
 		setInterval(function(){self.step();},250);
 
@@ -134,8 +135,9 @@ module.exports = cls.Class.extend({
 	},
 
 	step: function(){
-		var duration = (new Date()).getTime() - this.lastStart.getTime();
-		if(this.taskCount() > 0 && _(this.currentRequests).size() < this.config.simultaneousRequests && duration > (this.config.waitTime / this.config.simultaneousRequests)){
+		var sinceLastRequest = (new Date()).getTime() - this.lastFinish.getTime();
+		if(this.taskCount() > 0 && _(this.currentRequests).size() < this.config.simultaneousRequests
+			&& sinceLastRequest > Math.max(this.config.waitTime, this.waitTime)) {
 			var task;
 			if(this.failedTasks.length > 0){
 				task = this.failedTasks.shift();
@@ -144,12 +146,10 @@ module.exports = cls.Class.extend({
 			}
 			this.doTask(task);
 		}
-
 	},
 
 	doTask: function(task) {
 		var start = new Date();
-		this.lastStart = start;
 		var subject = task.subject;
 		var method = task.method;
 		var fields = null;
@@ -162,12 +162,16 @@ module.exports = cls.Class.extend({
 		req.onSuccess(function(data) {
 			self.executeCallbacks(task.callbacks, data);
 			self.calcReqStats(start,task.IDs.length);
+			self.lastFinish = new Date();
+			self.setWaitTime(start);
 			delete self.currentRequests[task.ID];
 		});
 
 		req.onError(function(error){
 			self.failTask(task);
 			self.calcReqStats(start,0);
+			self.lastFinish = new Date();
+			self.setWaitTime(start);
 			delete self.currentRequests[task.ID];
 		});
 
@@ -175,9 +179,15 @@ module.exports = cls.Class.extend({
 			if(self.currentRequests[task.ID]){
 				self.failTask(task);
 				self.calcReqStats(start,0);
+				self.lastFinish = new Date();
+				self.setWaitTime(start);
 				delete self.currentRequests[task.ID];
 			}
 		},60000);
+	},
+
+	setWaitTime: function(start) {
+		this.waitTime =((new Date()).getTime() - start.getTime())*this.config.waitMultiplier/this.config.simultaneousRequests;
 	},
 
 	failTask: function(task) {
