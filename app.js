@@ -2,10 +2,9 @@ var cls = require("./lib/class"),
     _ = require("underscore"),
     Clan = require("./clan"),
     DBTypes = require("./db_types"),
-    Config = require("./config"),
     ReqManager = require("./req_manager");
 
-module.exports = app = cls.Class.extend({
+module.exports = cls.Class.extend({
 	init: function(){
 		console.log('Initialising app');
 		
@@ -87,17 +86,17 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	errors: function(options) {
-		var s = options[0]?options[0]:-1;
+		var s = options[0] || -1;
 		
 		return function(callback) {
 			DBTypes.ErrorLog.find().sort("-t").skip(s>=0?s:0).limit(s>=0?1:1000).exec(function(err,docs){
-				ret = [];
+				var ret = [];
 				_.each(docs,function(doc){
 					ret.push({e:doc.e.split("\n")[0],tr:doc.e.split("\n").slice(1),t:doc.t});
-				})
+				});
 				callback(ret);
 			});
-		}
+		};
 	},
 	
 	globalStatus: function(options) {		
@@ -129,7 +128,7 @@ module.exports = app = cls.Class.extend({
 		
 		return function(callback) {
 			wait_callback = callback;
-		}
+		};
 	},
 	
 	rmInfo: function(){
@@ -140,12 +139,14 @@ module.exports = app = cls.Class.extend({
 	},
 	
 	addSuccessCallback: function(wid, callback){
-		if(!this.successCallbacks[wid])this.successCallbacks[wid] = [];
+		if(!this.successCallbacks[wid]){
+			this.successCallbacks[wid] = [];
+		}
 		this.successCallbacks[wid].push(callback);
 	},
 	
 	createAndWait: function(wid, callback){
-		doc = new DBTypes.Clan();
+		var doc = new DBTypes.Clan();
 		doc._id = wid;
 		doc.s = 0;
 		doc.u = 0;
@@ -161,13 +162,15 @@ module.exports = app = cls.Class.extend({
 	
 	status: function(options) {
 		var self = this,
-			wid = parseInt(options[0]);
-		if(isNaN(wid))return {status:"error",error:"Bad clan id"};
+			wid = parseInt(options[0], 10);
+		if(isNaN(wid)){
+			return {status:"error",error:"Bad clan id"};
+		}
 		return function(callback) {
 			if(_.contains(self.clanList,wid)){
 				DBTypes.Clan.findOne({_id: wid},function(err,doc){
 					if(doc){
-						clan = new Clan(wid);
+						var clan = new Clan(wid);
 						clan.doc = doc;
 						callback(clan.getData());
 					}else{
@@ -179,19 +182,19 @@ module.exports = app = cls.Class.extend({
 			}else{
 				self.createAndWait(wid,callback);
 			}
-		}
+		};
 	},
 	
 	playerChanges: function(options) {
-		var self = this,
-			wid = parseInt(options[0]);
+		var wid = parseInt(options[0], 10),
+			wait_callback = null;
 			
 		DBTypes.MemberChange.find({p: wid},function(err,docs){
 			var idList = _.map(docs,function(change){return change.c;}),
 				names = {},
 				ret = {status: "ok"};
 			DBTypes.Clan.find({_id:{$in:idList}},function(err,clans){
-				_.each(clans,function(clan){names[clan._id] = {tag:clan.t,name:clan.n,wid:clan._id}});
+				_.each(clans,function(clan){names[clan._id] = {tag:clan.t,name:clan.n,wid:clan._id};});
 				ret.changes = _.map(docs,function(change){
 					return {
 						change: change.ch,
@@ -205,29 +208,29 @@ module.exports = app = cls.Class.extend({
 		
 		return function(callback) {
 			wait_callback = callback;
-		}
+		};
 	},
 	
 	changes: function(options) {
-		var self = this,
-			wid = parseInt(options[0]);
+		var wid = parseInt(options[0], 10);
 		
 		return function(callback) {
 			DBTypes.Clan.findOne({_id: wid}).select("wid").exec(function(err,doc){
 				if(doc){
-					clan = new Clan(wid);
+					var clan = new Clan(wid);
 					clan.doc = doc;
 					clan.getChanges(callback);
-				}else callback({status:"Not found"});
+				} else {
+					callback({status:"Not found"});
+				}
 			});
-		}
+		};
 	},
 	
 	list: function(options) {
-		var self = this,
-			region = options["r"]?parseInt(options["r"]):-1,
-			limit = options["l"]?parseInt(options["l"]):30,
-			skip = options["s"]?parseInt(options["s"])*limit:0;
+		var region = options["r"]?parseInt(options["r"], 10):-1,
+			limit = options["l"]?parseInt(options["l"], 10):30,
+			skip = options["s"]?parseInt(options["s"], 10)*limit:0;
 		
 		return function(callback) {
 			var cond = {};	
@@ -262,29 +265,27 @@ module.exports = app = cls.Class.extend({
 					callback(ret);
 				});
 			});
-		}
+		};
 	},
 	
 	score: function(options) {
-		var self = this,
-			wid = parseInt(options[0]);
+		var wid = parseInt(options[0], 10);
 		
 		return function(callback) {
 			DBTypes.OldClanStats.findOne({_id:wid}).exec(function(err, doc){
 				var ret = {
 					status: "ok",
 					score: doc.value
-				}
+				};
 				callback(ret);
 			});
-		}
+		};
 	},
 	
 	scores: function(options) {
-		var self = this,
-			region = options["r"]?parseInt(options["r"]):-1,
-			limit = options["l"]?parseInt(options["l"]):10,
-			skip = options["s"]?parseInt(options["s"])*limit:0;
+		var region = options["r"]?parseInt(options["r"], 10):-1,
+			limit = options["l"]?parseInt(options["l"], 10):10,
+			skip = options["s"]?parseInt(options["s"], 10)*limit:0;
 		
 		return function(callback) {
 			var cond = {};
@@ -313,7 +314,7 @@ module.exports = app = cls.Class.extend({
 				var ret = {
 					status: "ok",
 					scores: []
-				}
+				};
 				var wids = _.map(docs,function(doc){return doc._id;}),
 					clans = docs;
 				DBTypes.Clan.find({_id:{$in:wids}}).select("t").exec(function(err,docs){
@@ -323,13 +324,13 @@ module.exports = app = cls.Class.extend({
 					_.each(clans,function(doc){
 						var retDoc = {SC3:doc.SC};
 						retDoc.wid = doc._id;
-						retDoc.tag = names[doc._id]?names[doc._id]:"";
+						retDoc.tag = names[doc._id] || "";
 						ret.scores.push(retDoc);
 					});
 					
 					callback(ret);
 				});
 			});
-		}
-	},
+		};
+	}
 });
