@@ -99,7 +99,7 @@ module.exports = cls.Class.extend({
 		};
 	},
 	
-	globalStatus: function(options) {		
+	globalStatus: function() {
 		var self = this,
 			wait_callback = null,
 			time = new Date();
