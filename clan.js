@@ -74,14 +74,13 @@ module.exports = Clan = cls.Class.extend({
 							});
 						}
 					});
-					_(this.members).each(function(member, id) {
+					_(self.members).each(function(member, id) {
 						var id = parseInt(id, 10);
 						if(!found[id]){
 							var doc = new DBTypes.Player();
 							doc._id = id;
 							doc.c = self.wid;
 							doc.n = member;
-							console.log("New player created: "+member+"("+id+") (clan: "+self.wid+")");
 							doc.save(function(err){
 								if(err){
 									console.log(err,"Player");

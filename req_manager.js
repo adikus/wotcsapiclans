@@ -155,6 +155,7 @@ module.exports = cls.Class.extend({
 		var fields = null;
 		if(subject == 'account' && method == 'info'){ fields = 'statistics.all,nickname';}
 		if(subject == 'account' && method == 'tanks'){ fields = 'statistics.battles,statistics.wins,tank_id,mark_of_mastery'; }
+		if(subject == 'clan' && method == 'info'){ fields = 'description_html,abbreviation,motto,name,members.account_id,members.account_name,members.created_at'; }
 
 		var req = new Request(subject, method, task.IDs, fields);
 		this.currentRequests[task.ID] = req;
