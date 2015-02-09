@@ -94,6 +94,17 @@ module.exports = Clan = cls.Class.extend({
 				}
 			});
 
+            DBTypes.Player.find({_id: {$not: {$in: ids}}, c: this.wid}, function(err, players) {
+                _(players).each(function(player) {
+                    player.c = 0;
+                    player.save(function(err){
+                        if(err){
+                            console.log(err,"Player");
+                        }
+                    });
+                });
+            });
+
 			this.doc.ms = ids;
 			this.doc.markModified('ms');
 		}
