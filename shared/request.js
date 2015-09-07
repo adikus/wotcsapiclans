@@ -7,10 +7,15 @@ module.exports = Request = cls.Class.extend({
         this.data = '';
 		this.startedAt = new Date();
 
+        var namespace = subject == 'clans' ? 'wgn' : 'wot';
+        if(subject[subject.length-1] == 's'){
+            var id_name = subject.substring(0,subject.length-1);
+        } else id_name = subject;
+
         this.IDs = IDs.toString();
         this.host = this.getHost(this.IDs.split(',')[0]);
         this.api_id = this.getApiId(this.IDs.split(',')[0]);
-        this.path = '/2.0/'+subject+'/'+method+'/?application_id='+this.api_id+'&'+subject+'_id='+this.IDs;
+        this.path = '/'+namespace+'/'+subject+'/'+method+'/?application_id='+this.api_id+'&'+id_name+'_id='+this.IDs;
         if(fields){
             this.path += '&fields='+fields;
         }

@@ -43,7 +43,7 @@ module.exports = Clan = cls.Class.extend({
 			this.doc.s = clanData.error || 'Unknown error';
 		}
 		else {
-			this.doc.t = clanData.data.abbreviation;
+			this.doc.t = clanData.data.tag;
 			this.doc.n = clanData.data.name;
 			this.doc.s = 1;
 			this.doc.m = clanData.data.motto;
