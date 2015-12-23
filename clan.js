@@ -49,10 +49,12 @@ module.exports = Clan = cls.Class.extend({
 			this.doc.m = clanData.data.motto;
 			this.doc.d = clanData.data.description_html;
 			this.members_count = clanData.data.members_count;
-			for(var i in clanData.data.members){
-				var pid = clanData.data.members[i].account_id;
-				this.members[pid] = clanData.data.members[i].account_name;
-			}
+			_(clanData.data.members).each(function(member){
+				if(member){
+					var pid = member.account_id;
+					this.members[pid] = member.account_name;
+				}
+			}, this);
 
 			var ids = _(_(this.members).keys()).map(function(val){return parseInt(val, 10)});
 
