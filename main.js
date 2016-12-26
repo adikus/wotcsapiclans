@@ -16,6 +16,8 @@ function main(){
 	  		return app[fName](options);
 	  	});
 	});
+
+	app.loadClansFromDB();
 	
 	process.on('uncaughtException',function(E){
 		var e = new DBTypes.ErrorLog({e:E.stack,t:new Date()});

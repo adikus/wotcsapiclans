@@ -33,13 +33,14 @@ module.exports = cls.Class.extend({
 				secs = Math.round(duration/1000) % 60;
 			this.cycleDuration = mins+"m"+secs+"s";
 		}
-		console.log('Loading clan list from DB');
+		console.log('Loading clan list from DB...');
 		DBTypes.Clan.find().sort('u').select('_id').exec(function(err, docs){
+            console.log('Done loading clan list from DB.');
 			var ids = [];
 			_.each(docs,function(doc){
 				if(doc._id){
 					ids.push(doc._id);
-					self.loadQueue.push(doc._id);
+					//self.loadQueue.push(doc._id);
 				}
 			});
 			self.clanList = ids;
@@ -47,41 +48,54 @@ module.exports = cls.Class.extend({
 			self.startTime = new Date();
 		});
 	},
+
+	loadClanFromAPI: function(clan, callback, preSaveCallback) {
+        this.rm.addReq(null, 'clans.info', clan.wid,function(data){
+            clan.find(function(){
+                if(!clan.parseData(data)){
+                    console.log('Parse error: '+clan.wid);
+                    callback('Parse error', clan);
+                }else{
+                    if(preSaveCallback){
+                        preSaveCallback(clan);
+                    }
+                    clan.save(function(err){
+                        if(err){
+                            console.log(err,"Clan");
+                            callback('DB error', clan);
+                        }
+                        callback(null, clan);
+                    });
+                }
+            });
+        });
+    },
 	
 	step: function() {
 		var self = this;
 		if(this.rm.queueLength() < 600 && self.loadQueue.length > 0){
 			var clan = new Clan(self.loadQueue.shift());
 			if(clan.wid < 2500000000 || clan.wid >= 3000000000){
-				this.rm.addReq(null, 'clans.info', clan.wid,function(data){
-					clan.find(function(){
-						if(!clan.parseData(data)){
-							console.log('Parse error: '+clan.wid);
-							self.retries[clan.wid] = self.retries[clan.wid]?self.retries[clan.wid]+1:1;
-							if(self.retries[clan.wid] < 3){
-								self.loadQueue.unshift(clan.wid);
-							}
-						}else{
-							if(self.successCallbacks[clan.wid]){
-								_.each(self.successCallbacks[clan.wid],function(s){
-									s(clan);
-								});
-								delete self.successCallbacks[clan.wid];
-							}
-							clan.save(function(err){
-								if(err){
-									console.log(err,"Clan");
-								}
-								if(self.retries[clan.wid]){
-									delete self.retries[clan.wid];
-								}
-							});
-						}
-					});
-				});
+				this.loadClanFromAPI(clan, function(err, clan) {
+				    if(err){
+                        self.retries[clan.wid] = self.retries[clan.wid]?self.retries[clan.wid]+1:1;
+                        if(self.retries[clan.wid] < 3){
+                            self.loadQueue.unshift(clan.wid);
+                        }
+                    } else {
+                        if(self.retries[clan.wid]){
+                            delete self.retries[clan.wid];
+                        }
+                    }
+                }, function(clan) {
+                    _.each(self.successCallbacks[clan.wid],function(s){
+                        s(clan);
+                    });
+                    delete self.successCallbacks[clan.wid];
+                });
 			}
 		}else if(self.loadQueue.length == 0 && !self.loadingFromDB){
-			this.loadClansFromDB();
+			//this.loadClansFromDB();
 		}
 	},
 	
@@ -168,16 +182,23 @@ module.exports = cls.Class.extend({
 		}
 		return function(callback) {
 			if(_.contains(self.clanList,wid)){
-				DBTypes.Clan.findOne({_id: wid},function(err,doc){
-					if(doc){
-						var clan = new Clan(wid);
+                DBTypes.Clan.findOne({_id: wid},function(err,doc){
+					var clan;
+                    if(doc){
+						clan = new Clan(wid);
 						clan.doc = doc;
-						callback(clan.getData());
-					}else{
-						self.addSuccessCallback(wid,function(clan){
-							callback(clan.getData());
-						});
-					}
+						var now = new Date();
+						if(now.getTime() - doc.u.getTime() < 1000 * 3600){
+                            console.log('Loading ' + wid + ' from DB');
+                            return callback(clan.getData());
+                        }
+					} else {
+                        clan = new Clan(wid);
+                    }
+                    console.log('Loading ' + wid + ' from API');
+                    self.loadClanFromAPI(clan, function(err, clan) {
+                        callback(clan.getData());
+                    });
 				});
 			}else{
 				self.createAndWait(wid,callback);
